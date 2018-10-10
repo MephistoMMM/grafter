@@ -28,16 +28,17 @@ import (
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
-	Use:   "init",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Use:   "init <mission_name> <SRC> <DEST>",
+	Short: "Register a grafting mission.",
+	Long:  `This command register a mission to associate SRC project with DEST project (SRC and DEST are both the path of project). It will write register information to $HOME/.grafter/missions, then compare all files in both projects to records temporary data to $HOME/.grafter/gm_$SRC@$DEST, which used in 'graft' command.`,
+	Args: func(cmd *cobra.Command, args []string) error {
+		if err := cobra.ExactArgs(3)(cmd, args); err != nil {
+			return err
+		}
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("init called")
+		fmt.Printf("init called with arguments: %v", args)
 	},
 }
 
