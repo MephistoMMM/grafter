@@ -22,6 +22,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -34,6 +35,13 @@ var initCmd = &cobra.Command{
 	Args: func(cmd *cobra.Command, args []string) error {
 		if err := cobra.ExactArgs(3)(cmd, args); err != nil {
 			return err
+		}
+		src, dest := args[1], args[2]
+		if fi, err := os.Stat(src); err != nil || !fi.IsDir() {
+			return fmt.Errorf("src directory is not exist: %s", src)
+		}
+		if fi, err := os.Stat(dest); err != nil || !fi.IsDir() {
+			return fmt.Errorf("dest directory is not exist: %s", dest)
 		}
 		return nil
 	},
