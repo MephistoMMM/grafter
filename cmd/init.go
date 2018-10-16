@@ -22,9 +22,13 @@ package cmd
 
 import (
 	"fmt"
-	"os"
+	"log"
+	"path/filepath"
 
+	"github.com/MephistoMMM/grafter/model"
+	"github.com/MephistoMMM/grafter/util"
 	"github.com/spf13/cobra"
+	yaml "gopkg.in/yaml.v2"
 )
 
 // initCmd represents the init command
@@ -37,17 +41,15 @@ var initCmd = &cobra.Command{
 			return err
 		}
 		src, dest := args[1], args[2]
-		if fi, err := os.Stat(src); err != nil || !fi.IsDir() {
+		if !util.IsDir(src) {
 			return fmt.Errorf("src directory is not exist: %s", src)
 		}
-		if fi, err := os.Stat(dest); err != nil || !fi.IsDir() {
+		if !util.IsDir(dest) {
 			return fmt.Errorf("dest directory is not exist: %s", dest)
 		}
 		return nil
 	},
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("init called with arguments: %v", args)
-	},
+	Run: runInit,
 }
 
 func init() {
@@ -62,4 +64,24 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func runInit(cmd *cobra.Command, args []string) {
+	name := args[0]
+	srcDir, _ := filepath.Abs(args[1])
+	destDir, _ := filepath.Abs(args[2])
+
+	missionStore, err := model.NewMissionStore("~/.grafter/grafter")
+	missionStore.Add(model.Mission{
+		Src:  srcDir,
+		Dest: destDir,
+		Name: name,
+	})
+
+	d, err := yaml.Marshal(&missionStore)
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+
+	log.Println(string(d))
 }
