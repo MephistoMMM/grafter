@@ -19,9 +19,31 @@
 // THE SOFTWARE.
 package util
 
-import "os"
+import (
+	"io/ioutil"
+	"log"
+	"os"
+	"os/user"
+	"path/filepath"
+)
 
 func IsDir(path string) bool {
 	fi, err := os.Stat(path)
 	return err == nil && fi.IsDir()
+}
+
+// WriteFile write data to file, and create its directories if necessary
+func WriteFile(path string, data []byte) error {
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		log.Fatal(err)
+	}
+	return ioutil.WriteFile(path, data, 0664)
+}
+
+func HomeDir() string {
+	usr, err := user.Current()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return usr.HomeDir
 }

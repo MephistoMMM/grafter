@@ -83,5 +83,11 @@ func runInit(cmd *cobra.Command, args []string) {
 		log.Fatalf("error: %v", err)
 	}
 
+	// write mission datas to file system
+	if err = util.WriteFile(dotGrafterFile, d); err != nil {
+		log.Fatal(err)
+	}
+
 	log.Println(string(d))
+	log.Println(dotGrafterFile)
 }
