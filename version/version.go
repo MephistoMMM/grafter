@@ -17,43 +17,9 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-package util
+package version
 
-import (
-	"io/ioutil"
-	"log"
-	"os"
-	"os/user"
-	"path/filepath"
+const (
+	// Version version of grafter
+	Version = "1.0.0"
 )
-
-func IsDir(path string) bool {
-	fi, err := os.Stat(path)
-	return err == nil && fi.IsDir()
-}
-
-func IsNotExist(path string) bool {
-	_, err := os.Stat(path)
-	return os.IsNotExist(err)
-}
-
-// WriteFile write data to file, and create its directories if necessary
-func WriteFile(path string, data []byte) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
-		log.Fatal(err)
-	}
-	return ioutil.WriteFile(path, data, 0664)
-}
-
-// ReadFile just keep the same style as WriteFile
-func ReadFile(path string) ([]byte, error) {
-	return ioutil.ReadFile(path)
-}
-
-func HomeDir() string {
-	usr, err := user.Current()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return usr.HomeDir
-}

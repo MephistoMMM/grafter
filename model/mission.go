@@ -23,6 +23,7 @@ package model
 
 import (
 	"github.com/MephistoMMM/grafter/util"
+	"github.com/MephistoMMM/grafter/version"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -49,7 +50,7 @@ func NewMissionStore(storePath string) (*MissionStore, error) {
 
 // Init load mission store from yaml file
 func (ms *MissionStore) Init(storePath string) error {
-	ms.Version = "1.0.0"
+	ms.Version = version.Version
 	ms.path = storePath
 
 	return ms.Load(ms.path)
@@ -57,6 +58,13 @@ func (ms *MissionStore) Init(storePath string) error {
 
 // Add add mission to Missions field
 func (ms *MissionStore) Add(mission Mission) bool {
+	// return false while mission already exists
+	for _, m := range ms.Missions {
+		if m.Name == mission.Name {
+			return false
+		}
+	}
+
 	ms.Missions = append(ms.Missions, mission)
 	return true
 }
@@ -68,6 +76,11 @@ func (ms *MissionStore) Path() string {
 
 // Load read mission data from path
 func (ms *MissionStore) Load(path string) error {
+	if util.IsNotExist(path) {
+		ms.Missions = []Mission{}
+		return nil
+	}
+
 	d, err := util.ReadFile(path)
 	if err != nil {
 		return err

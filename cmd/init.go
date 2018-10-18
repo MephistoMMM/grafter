@@ -75,11 +75,14 @@ func runInit(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	missionStore.Add(model.Mission{
+	ok := missionStore.Add(model.Mission{
 		Src:  srcDir,
 		Dest: destDir,
 		Name: name,
 	})
+	if !ok {
+		log.Fatalf("Mission %s already exists.", name)
+	}
 
 	if err = missionStore.Store(missionStore.Path()); err != nil {
 		log.Fatal(err)
