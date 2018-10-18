@@ -28,7 +28,6 @@ import (
 	"github.com/MephistoMMM/grafter/model"
 	"github.com/MephistoMMM/grafter/util"
 	"github.com/spf13/cobra"
-	yaml "gopkg.in/yaml.v2"
 )
 
 // initCmd represents the init command
@@ -71,23 +70,18 @@ func runInit(cmd *cobra.Command, args []string) {
 	srcDir, _ := filepath.Abs(args[1])
 	destDir, _ := filepath.Abs(args[2])
 
-	missionStore, err := model.NewMissionStore("~/.grafter/grafter")
+	missionStore, err := model.NewMissionStore(dotGrafterFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	missionStore.Add(model.Mission{
 		Src:  srcDir,
 		Dest: destDir,
 		Name: name,
 	})
 
-	d, err := yaml.Marshal(&missionStore)
-	if err != nil {
-		log.Fatalf("error: %v", err)
-	}
-
-	// write mission datas to file system
-	if err = util.WriteFile(dotGrafterFile, d); err != nil {
+	if err = missionStore.Store(missionStore.Path()); err != nil {
 		log.Fatal(err)
 	}
-
-	log.Println(string(d))
-	log.Println(dotGrafterFile)
 }

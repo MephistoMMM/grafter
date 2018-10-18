@@ -40,6 +40,11 @@ func WriteFile(path string, data []byte) error {
 	return ioutil.WriteFile(path, data, 0664)
 }
 
+// ReadFile just keep the same style as WriteFile
+func ReadFile(path string) ([]byte, error) {
+	return ioutil.ReadFile(path)
+}
+
 func HomeDir() string {
 	usr, err := user.Current()
 	if err != nil {

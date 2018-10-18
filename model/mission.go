@@ -21,6 +21,11 @@
 // Package model defined model to store mission datas to file system.
 package model
 
+import (
+	"github.com/MephistoMMM/grafter/util"
+	yaml "gopkg.in/yaml.v2"
+)
+
 // Mission represents a mission of grafting.
 type Mission struct {
 	Src  string `yaml:"src"`
@@ -30,6 +35,7 @@ type Mission struct {
 
 // MissionStore store all registered Missions
 type MissionStore struct {
+	path     string
 	Version  string    `yaml:"version"`
 	Missions []Mission `yaml:"missions"`
 }
@@ -44,12 +50,48 @@ func NewMissionStore(storePath string) (*MissionStore, error) {
 // Init load mission store from yaml file
 func (ms *MissionStore) Init(storePath string) error {
 	ms.Version = "1.0.0"
-	ms.Missions = []Mission{}
-	return nil
+	ms.path = storePath
+
+	return ms.Load(ms.path)
 }
 
 // Add add mission to Missions field
 func (ms *MissionStore) Add(mission Mission) bool {
 	ms.Missions = append(ms.Missions, mission)
 	return true
+}
+
+// Path ...
+func (ms *MissionStore) Path() string {
+	return ms.path
+}
+
+// Load read mission data from path
+func (ms *MissionStore) Load(path string) error {
+	d, err := util.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	err = yaml.Unmarshal(d, ms)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Store write mission store data into path
+func (ms *MissionStore) Store(path string) error {
+	d, err := yaml.Marshal(ms)
+	if err != nil {
+		return err
+	}
+
+	// write mission datas to file system
+	if err = util.WriteFile(path, d); err != nil {
+		return err
+	}
+
+	return nil
 }
