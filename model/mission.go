@@ -31,7 +31,7 @@ type Mission struct {
 // MissionStore store all registered Missions
 type MissionStore struct {
 	Version  string    `yaml:"version"`
-	Missions []Mission `yaml:"missions,flow"`
+	Missions []Mission `yaml:"missions"`
 }
 
 // NewMissionStore create and init a new MissionStore
