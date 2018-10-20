@@ -22,15 +22,20 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path"
 
+	"github.com/MephistoMMM/grafter/model"
 	"github.com/MephistoMMM/grafter/util"
 	"github.com/spf13/cobra"
 )
 
 var (
 	dotGrafterFile string
+
+	// Store missions globally
+	Store *model.MissionStore
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -43,9 +48,22 @@ examples and usage of using your application. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		// init global mission Store
+		missionStore, err := model.NewMissionStore(dotGrafterFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		Store = missionStore
+	},
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	//	Run: func(cmd *cobra.Command, args []string) { },
+	PersistentPostRun: func(cmd *cobra.Command, args []string) {
+		if err := Store.Store(Store.Path()); err != nil {
+			log.Fatal(err)
+		}
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

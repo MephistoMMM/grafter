@@ -37,6 +37,7 @@ type Mission struct {
 // MissionStore store all registered Missions
 type MissionStore struct {
 	path     string
+	modified bool
 	Version  string    `yaml:"version"`
 	Missions []Mission `yaml:"missions"`
 }
@@ -52,6 +53,7 @@ func NewMissionStore(storePath string) (*MissionStore, error) {
 func (ms *MissionStore) Init(storePath string) error {
 	ms.Version = version.Version
 	ms.path = storePath
+	ms.modified = false
 
 	return ms.Load(ms.path)
 }
@@ -66,6 +68,7 @@ func (ms *MissionStore) Add(mission Mission) bool {
 	}
 
 	ms.Missions = append(ms.Missions, mission)
+	ms.modified = true
 	return true
 }
 
@@ -96,6 +99,12 @@ func (ms *MissionStore) Load(path string) error {
 
 // Store write mission store data into path
 func (ms *MissionStore) Store(path string) error {
+	// do nothing if destination path is same and mission store is not
+	// modified
+	if path == ms.path && !ms.modified {
+		return nil
+	}
+
 	d, err := yaml.Marshal(ms)
 	if err != nil {
 		return err
