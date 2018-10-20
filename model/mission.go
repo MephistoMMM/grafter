@@ -72,6 +72,20 @@ func (ms *MissionStore) Add(mission Mission) bool {
 	return true
 }
 
+// Remove remove mission to Missions field
+func (ms *MissionStore) Remove(mission string) bool {
+	// return false while mission already exists
+	for i, m := range ms.Missions {
+		if m.Name == mission {
+			ms.Missions = append(ms.Missions[:i], ms.Missions[i+1:]...)
+			ms.modified = true
+			return true
+		}
+	}
+
+	return false
+}
+
 // Path ...
 func (ms *MissionStore) Path() string {
 	return ms.path
