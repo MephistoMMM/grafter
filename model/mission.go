@@ -72,6 +72,18 @@ func (ms *MissionStore) Add(mission Mission) bool {
 	return true
 }
 
+// Get mission by mission name
+func (ms *MissionStore) Get(mission string) *Mission {
+	// return false while mission already exists
+	for _, m := range ms.Missions {
+		if m.Name == mission {
+			return &m
+		}
+	}
+
+	return nil
+}
+
 // Remove remove mission to Missions field
 func (ms *MissionStore) Remove(mission string) bool {
 	// return false while mission already exists
