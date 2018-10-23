@@ -21,8 +21,6 @@
 package cmd
 
 import (
-	"log"
-
 	"github.com/MephistoMMM/grafter/model"
 	"github.com/spf13/cobra"
 )

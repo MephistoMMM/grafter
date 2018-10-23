@@ -22,7 +22,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"path/filepath"
 
 	"github.com/MephistoMMM/grafter/model"

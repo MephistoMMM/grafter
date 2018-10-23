@@ -21,9 +21,6 @@
 package cmd
 
 import (
-	"fmt"
-	"log"
-	"os"
 	"path"
 
 	"github.com/MephistoMMM/grafter/model"
@@ -37,6 +34,8 @@ var (
 	// Store missions globally
 	Store *model.MissionStore
 )
+
+var log = util.Logger
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -70,8 +69,7 @@ to quickly create a Cobra application.`,
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatalln(err)
 	}
 }
 

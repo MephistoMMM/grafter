@@ -22,7 +22,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/spf13/cobra"
 )
@@ -41,8 +40,7 @@ func init() {
 
 func listRun(cmd *cobra.Command, args []string) {
 	if len(Store.Missions) == 0 {
-		fmt.Println("None Missions.")
-		return
+		log.Fatalln("None Missions.")
 	}
 	for _, m := range Store.Missions {
 		log.Println(m.String())

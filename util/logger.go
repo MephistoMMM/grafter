@@ -20,39 +20,66 @@
 package util
 
 import (
-	"io/ioutil"
+	"log"
 	"os"
-	"os/user"
-	"path/filepath"
 )
 
-func IsDir(path string) bool {
-	fi, err := os.Stat(path)
-	return err == nil && fi.IsDir()
+var Logger MixLogger
+
+type MixLogger struct {
+	out *log.Logger
+	err *log.Logger
 }
 
-func IsNotExist(path string) bool {
-	_, err := os.Stat(path)
-	return os.IsNotExist(err)
+func init() {
+	Logger.out = log.New(os.Stdout, "", 0)
+	Logger.err = log.New(os.Stderr, "", 0)
 }
 
-// WriteFile write data to file, and create its directories if necessary
-func WriteFile(path string, data []byte) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
-		Logger.Fatal(err)
-	}
-	return ioutil.WriteFile(path, data, 0664)
+func (ml *MixLogger) Print(v ...interface{}) {
+	ml.out.Print(v...)
 }
 
-// ReadFile just keep the same style as WriteFile
-func ReadFile(path string) ([]byte, error) {
-	return ioutil.ReadFile(path)
+func (ml *MixLogger) Println(v ...interface{}) {
+	ml.out.Println(v...)
 }
 
-func HomeDir() string {
-	usr, err := user.Current()
-	if err != nil {
-		Logger.Fatal(err)
-	}
-	return usr.HomeDir
+func (ml *MixLogger) Printf(format string, v ...interface{}) {
+	ml.out.Printf(format, v...)
+}
+
+func (ml *MixLogger) Fatal(v ...interface{}) {
+	ml.err.Fatal(v...)
+}
+
+func (ml *MixLogger) Fatalln(v ...interface{}) {
+	ml.err.Fatalln(v...)
+}
+
+func (ml *MixLogger) Fatalf(format string, v ...interface{}) {
+	ml.err.Fatalf(format, v...)
+}
+
+func Print(v ...interface{}) {
+	Logger.Print(v...)
+}
+
+func Println(v ...interface{}) {
+	Logger.Println(v...)
+}
+
+func Printf(format string, v ...interface{}) {
+	Logger.Printf(format, v...)
+}
+
+func Fatal(v ...interface{}) {
+	Logger.Fatal(v...)
+}
+
+func Fatalln(v ...interface{}) {
+	Logger.Fatalln(v...)
+}
+
+func Fatalf(format string, v ...interface{}) {
+	Logger.Fatalf(format, v...)
 }
