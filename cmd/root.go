@@ -83,5 +83,5 @@ func init() {
 	// will be global for your application.
 	rootCmd.PersistentFlags().StringVar(&dotGrafterFile, "store",
 		path.Join(util.HomeDir(), ".grafter/grafter"),
-		"mission store file (default is $HOME/.grafter/grafter)")
+		"mission store file")
 }
