@@ -22,6 +22,8 @@
 package model
 
 import (
+	"fmt"
+
 	"github.com/MephistoMMM/grafter/util"
 	"github.com/MephistoMMM/grafter/version"
 	yaml "gopkg.in/yaml.v2"
@@ -32,6 +34,12 @@ type Mission struct {
 	Src  string `yaml:"src"`
 	Dest string `yaml:"dest"`
 	Name string `yaml:"name"`
+}
+
+// String return string value of Mission data
+func (m *Mission) String() string {
+	return fmt.Sprintf("%s:\n\tsrc: %s\n\tdest: %s\n",
+		m.Name, m.Src, m.Dest)
 }
 
 // MissionStore store all registered Missions
