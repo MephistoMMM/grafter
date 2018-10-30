@@ -125,3 +125,23 @@ func HomeDir() string {
 	}
 	return usr.HomeDir
 }
+
+type IgnoreFunc func(path string, info os.FileInfo) bool
+
+// Walk read and collect files recursively under the dir Directory
+func Walk(dir string, ignoreFunc IgnoreFunc) (files []string, err error) {
+	err = filepath.Walk(dir,
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if IgnoreFunc(path, info) {
+				return filepath.SkipDir
+			}
+
+			files = append(files, path)
+			return nil
+		})
+
+	return err
+}
