@@ -128,20 +128,124 @@ func HomeDir() string {
 
 type IgnoreFunc func(path string, info os.FileInfo) bool
 
+type IgnoreSupport interface {
+	SetNext(IgnoreSupport) IgnoreSupport
+	Next() IgnoreSupport
+
+	IsIgnore(path string, info os.FileInfo) (bool, error)
+	Done(path string, info os.FileInfo)
+	Fail(path string, info os.FileInfo)
+}
+
+type BaseSupport struct {
+	next IgnoreSupport
+}
+
+// SetNext ...
+func (bs *BaseSupport) SetNext(n IgnoreSupport) IgnoreSupport {
+	bs.next = n
+	return n
+}
+
+// Next ...
+func (bs *BaseSupport) Next() IgnoreSupport {
+	return bs.next
+}
+
+func Check(checker IgnoreSupport, path string, info os.FileInfo) bool {
+	if checker == nil {
+		return true
+	}
+
+	for checker != nil {
+		result, err := checker.IsIgnore(path, info)
+		if err != nil {
+			checker.Fail(path, info)
+		}
+
+		if result {
+			checker.Done(path, info)
+			return true
+		}
+
+		checker = checker.Next()
+	}
+
+	return false
+}
+
+type IgnoreSpecialMadeSupport struct {
+	BaseSupport
+
+	modeMask os.FileMode
+}
+
+func NewIgnoreUnregularSupport() *IgnoreSpecialMadeSupport {
+	return &IgnoreSpecialMadeSupport{
+		modeMask: os.ModeSymlink | os.ModeNamedPipe | os.ModeSocket | os.ModeDevice | os.ModeIrregular,
+	}
+}
+
+// IsIgnore ...
+func (isms *IgnoreSpecialMadeSupport) IsIgnore(path string, info os.FileInfo) (bool, error) {
+	if isms.modeMask&info.Mode() != 0 {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+// Done ...
+func (isms *IgnoreSpecialMadeSupport) Done(path string, info os.FileInfo) {
+	Logger.Printf("%s ignored by IgnoreSpecialMadeSupport\n", path)
+}
+
+func (isms *IgnoreSpecialMadeSupport) Fail(path string, info os.FileInfo) {
+}
+
+type IgnoreDotSupport struct {
+	BaseSupport
+}
+
+func NewIgnoreDotSupport() *IgnoreDotSupport {
+	return &IgnoreDotSupport{}
+}
+
+// IsIgnore ...
+func (ids *IgnoreDotSupport) IsIgnore(path string, info os.FileInfo) (bool, error) {
+	if filepath.Base(path)[0] == '.' {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+// Done ...
+func (ids *IgnoreDotSupport) Done(path string, info os.FileInfo) {
+	Logger.Printf("%s ignored by IgnoreDotSupport\n", path)
+}
+
+func (ids *IgnoreDotSupport) Fail(path string, info os.FileInfo) {
+}
+
 // Walk read and collect files recursively under the dir Directory
-func Walk(dir string, ignoreFunc IgnoreFunc) (files []string, err error) {
+func Walk(dir string, checker IgnoreSupport) (files []string, err error) {
 	err = filepath.Walk(dir,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
-			if IgnoreFunc(path, info) {
+			if !Check(checker, path, info) {
+				files = append(files, path)
+				return nil
+			}
+
+			if info.IsDir() {
 				return filepath.SkipDir
 			}
 
-			files = append(files, path)
 			return nil
 		})
 
-	return err
+	return
 }
