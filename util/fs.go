@@ -152,6 +152,12 @@ func (bs *BaseSupport) Next() IgnoreSupport {
 	return bs.next
 }
 
+func (bs *BaseSupport) Done(path string, info os.FileInfo) {
+}
+
+func (bs *BaseSupport) Fail(path string, info os.FileInfo) {
+}
+
 func Check(checker IgnoreSupport, path string, info os.FileInfo) bool {
 	if checker == nil {
 		return true
@@ -200,9 +206,6 @@ func (isms *IgnoreSpecialMadeSupport) Done(path string, info os.FileInfo) {
 	Logger.Printf("%s ignored by IgnoreSpecialMadeSupport\n", path)
 }
 
-func (isms *IgnoreSpecialMadeSupport) Fail(path string, info os.FileInfo) {
-}
-
 type IgnoreDotSupport struct {
 	BaseSupport
 }
@@ -223,9 +226,6 @@ func (ids *IgnoreDotSupport) IsIgnore(path string, info os.FileInfo) (bool, erro
 // Done ...
 func (ids *IgnoreDotSupport) Done(path string, info os.FileInfo) {
 	Logger.Printf("%s ignored by IgnoreDotSupport\n", path)
-}
-
-func (ids *IgnoreDotSupport) Fail(path string, info os.FileInfo) {
 }
 
 // Walk read and collect files recursively under the dir Directory
