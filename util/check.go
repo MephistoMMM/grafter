@@ -22,6 +22,7 @@ package util
 import (
 	"os"
 	"path/filepath"
+	"regexp"
 )
 
 // Walk is designed as `chain of repositories` mode. It includes three parts,
@@ -86,6 +87,37 @@ func Check(checker IgnoreSupport, path string, info os.FileInfo) bool {
 	}
 
 	return false
+}
+
+type IgnoreRegexpMatchSupport struct {
+	BaseSupport
+
+	pattern *regexp.Regexp
+}
+
+func NewIgnoreRegexpMatchSupport(expr string) (*IgnoreRegexpMatchSupport, error) {
+	pattern, err := regexp.Compile(expr)
+	if err != nil {
+		return nil, err
+	}
+
+	return &IgnoreRegexpMatchSupport{
+		pattern: pattern,
+	}
+
+}
+
+// IsIgnore ...
+func (irms *IgnoreRegexpMatchSupport) IsIgnore(path string, info os.FileInfo) (bool, error) {
+	if irms.pattern.MatchString(path) {
+		return true, nil
+	}
+	return false, nil
+}
+
+// Done ...
+func (isms *IgnoreRegexpMatchSupport) Done(path string, info os.FileInfo) {
+	Logger.Printf("%s ignored by IgnoreRegexpSupport\n", path)
 }
 
 // IgnoreSpecialMadeSupport ignore special type fies.
