@@ -26,6 +26,8 @@ documented here: https://git-scm.com/docs/gitignore
 Multiple .gitignore files with multiple matching patterns
 are supported. A cache is used to prevent loading the same
 .gitignore file again when checking different paths.
+
+This package supports linux/macOS/unix.
 */
 package gitignore
 
@@ -34,7 +36,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strings"
 	"sync"
 )
@@ -162,6 +163,7 @@ func (c *Checker) LoadBasePath(path string) error {
 			}
 			c.gitIgnores = append(c.gitIgnores, gi)
 		}
+		// read from base path to root , maybe it needs a restriction
 		lastPath = curPath
 		curPath = filepath.Dir(curPath)
 	}
@@ -342,9 +344,6 @@ func (p pathPattern) Matches(path string, fi os.FileInfo) bool {
 	if p.matchDirOnly && !fi.IsDir() {
 		return false
 	}
-	if runtime.GOOS == "windows" {
-		path = filepath.ToSlash(path)
-	}
 	if p.leadingSlash {
 		res, err := filepath.Match(p.content, path)
 		if err != nil {
@@ -409,9 +408,6 @@ func newRegexPattern(base basePattern) patternMatcher {
 func (p regexPattern) Matches(path string, fi os.FileInfo) bool {
 	if p.matchDirOnly && !fi.IsDir() {
 		return false
-	}
-	if runtime.GOOS == "windows" {
-		path = filepath.ToSlash(path)
 	}
 	return p.re.MatchString(path)
 }

@@ -23,6 +23,8 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+
+	"github.com/MephistoMMM/grafter/gitignore"
 )
 
 // Walk is designed as `chain of repositories` mode. It includes three parts,
@@ -168,4 +170,31 @@ func (ids *IgnoreDotSupport) IsIgnore(path string, info os.FileInfo) (bool, erro
 // Done ...
 func (ids *IgnoreDotSupport) Done(path string, info os.FileInfo) {
 	Logger.Printf("%s ignored by IgnoreDotSupport\n", path)
+}
+
+type GitIgnoreSupport struct {
+	BaseSupport
+
+	checker *gitignore.Checker
+}
+
+func NewGitIgnoreSupport(path string) (*GitIgnoreSupport, error) {
+	checker := gitignore.NewChecker()
+	if err := checker.LoadBasePath(path); err != nil {
+		return nil, err
+	}
+
+	return &GitIgnoreSupport{
+		checker: checker,
+	}, nil
+}
+
+// IsIgnore ...
+func (gis *GitIgnoreSupport) IsIgnore(path string, info os.FileInfo) (bool, error) {
+	return gis.checker.Check(path, info), nil
+}
+
+// Done ...
+func (gis *GitIgnoreSupport) Done(path string, info os.FileInfo) {
+	Logger.Printf("%s ignored by GitIgnoreSupport\n", path)
 }
