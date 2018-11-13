@@ -54,9 +54,27 @@ func graftRun(cmd *cobra.Command, args []string) {
 
 func graft(M *model.Mission) {
 	log.Printf("Do Graft For %s", M.Name)
-	checker := util.NewIgnoreDotSupport()
-	checker.SetNext(util.NewIgnoreUnregularSupport())
+	var checker util.IgnoreSupport
+	ignoreDot, err := util.NewIgnoreDotSupport()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ignoreUnregular, err := util.NewIgnoreUnregularSupport()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// gitignore support ignores filepath matched patterns in .gitignore
+	gitIgnore, err := util.NewGitIgnoreSupport(M.Src)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ignoreDot.SetNext(ignoreUnregular).SetNext(gitIgnore)
+	checker = ignoreDot
 
 	files, _ := util.Walk(M.Src, checker)
 	log.Println(len(files))
+	log.Println(checker.String())
 }

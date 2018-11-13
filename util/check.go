@@ -36,6 +36,7 @@ import (
 type IgnoreSupport interface {
 	SetNext(IgnoreSupport) IgnoreSupport
 	Next() IgnoreSupport
+	String() string
 
 	IsIgnore(path string, info os.FileInfo) (bool, error)
 	Done(path string, info os.FileInfo)
@@ -46,6 +47,14 @@ type IgnoreSupport interface {
 // `IsIgnore`. It should be embeded into a concrete IgnoreSupport.
 type BaseSupport struct {
 	next IgnoreSupport
+	name string
+}
+
+// SetName set n to name
+// This method should only be used when concrete IgnoreSupport inits, so it
+// is not a part of IgnoreSupport interface.
+func (bs *BaseSupport) SetName(n string) {
+	bs.name = n
 }
 
 // SetNext assign another IgnoreSupport to inner next field. It is used to
@@ -60,8 +69,17 @@ func (bs *BaseSupport) Next() IgnoreSupport {
 	return bs.next
 }
 
+// String describe the chain of IgnoreSupport
+func (bs *BaseSupport) String() string {
+	if bs.Next() == nil {
+		return bs.name
+	}
+	return bs.name + " | " + bs.Next().String()
+}
+
 // Done does nothing but implement IgnoreSupport interface
 func (bs *BaseSupport) Done(path string, info os.FileInfo) {
+	Logger.Printf("%s ignored by %s\n", path, bs.name)
 }
 
 // Fail does nothing but implement IgnoreSupport interface
@@ -97,15 +115,17 @@ type IgnoreRegexpMatchSupport struct {
 	pattern *regexp.Regexp
 }
 
-func NewIgnoreRegexpMatchSupport(expr string) (*IgnoreRegexpMatchSupport, error) {
+func NewIgnoreRegexpMatchSupport(expr string) (IgnoreSupport, error) {
 	pattern, err := regexp.Compile(expr)
 	if err != nil {
 		return nil, err
 	}
 
-	return &IgnoreRegexpMatchSupport{
+	is := &IgnoreRegexpMatchSupport{
 		pattern: pattern,
 	}
+	is.SetName("IgnoreRegexpMatchSupport")
+	return is, nil
 
 }
 
@@ -117,11 +137,6 @@ func (irms *IgnoreRegexpMatchSupport) IsIgnore(path string, info os.FileInfo) (b
 	return false, nil
 }
 
-// Done ...
-func (isms *IgnoreRegexpMatchSupport) Done(path string, info os.FileInfo) {
-	Logger.Printf("%s ignored by IgnoreRegexpSupport\n", path)
-}
-
 // IgnoreSpecialMadeSupport ignore special type fies.
 type IgnoreSpecialMadeSupport struct {
 	BaseSupport
@@ -129,10 +144,12 @@ type IgnoreSpecialMadeSupport struct {
 	modeMask os.FileMode
 }
 
-func NewIgnoreUnregularSupport() *IgnoreSpecialMadeSupport {
-	return &IgnoreSpecialMadeSupport{
+func NewIgnoreUnregularSupport() (IgnoreSupport, error) {
+	is := &IgnoreSpecialMadeSupport{
 		modeMask: os.ModeSymlink | os.ModeNamedPipe | os.ModeSocket | os.ModeDevice | os.ModeIrregular,
 	}
+	is.SetName("IgnoreUnregularSupport")
+	return is, nil
 }
 
 // IsIgnore ...
@@ -144,18 +161,15 @@ func (isms *IgnoreSpecialMadeSupport) IsIgnore(path string, info os.FileInfo) (b
 	return false, nil
 }
 
-// Done ...
-func (isms *IgnoreSpecialMadeSupport) Done(path string, info os.FileInfo) {
-	Logger.Printf("%s ignored by IgnoreSpecialMadeSupport\n", path)
-}
-
 // IgnoreDotSupport ignore all dot fies.
 type IgnoreDotSupport struct {
 	BaseSupport
 }
 
-func NewIgnoreDotSupport() *IgnoreDotSupport {
-	return &IgnoreDotSupport{}
+func NewIgnoreDotSupport() (IgnoreSupport, error) {
+	is := &IgnoreDotSupport{}
+	is.SetName("IgnoreDotSupport")
+	return is, nil
 }
 
 // IsIgnore ...
@@ -167,34 +181,26 @@ func (ids *IgnoreDotSupport) IsIgnore(path string, info os.FileInfo) (bool, erro
 	return false, nil
 }
 
-// Done ...
-func (ids *IgnoreDotSupport) Done(path string, info os.FileInfo) {
-	Logger.Printf("%s ignored by IgnoreDotSupport\n", path)
-}
-
 type GitIgnoreSupport struct {
 	BaseSupport
 
 	checker *gitignore.Checker
 }
 
-func NewGitIgnoreSupport(path string) (*GitIgnoreSupport, error) {
+func NewGitIgnoreSupport(path string) (IgnoreSupport, error) {
 	checker := gitignore.NewChecker()
 	if err := checker.LoadBasePath(path); err != nil {
 		return nil, err
 	}
 
-	return &GitIgnoreSupport{
+	is := &GitIgnoreSupport{
 		checker: checker,
-	}, nil
+	}
+	is.SetName("GitIgnoreSupport")
+	return is, nil
 }
 
 // IsIgnore ...
 func (gis *GitIgnoreSupport) IsIgnore(path string, info os.FileInfo) (bool, error) {
 	return gis.checker.Check(path, info), nil
-}
-
-// Done ...
-func (gis *GitIgnoreSupport) Done(path string, info os.FileInfo) {
-	Logger.Printf("%s ignored by GitIgnoreSupport\n", path)
 }

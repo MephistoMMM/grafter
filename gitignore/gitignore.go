@@ -27,7 +27,7 @@ Multiple .gitignore files with multiple matching patterns
 are supported. A cache is used to prevent loading the same
 .gitignore file again when checking different paths.
 
-This package supports linux/macOS/unix.
+This package only support linux/macOS/unix OS.
 */
 package gitignore
 
