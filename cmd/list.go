@@ -43,6 +43,6 @@ func listRun(cmd *cobra.Command, args []string) {
 		log.Fatalln("None Missions.")
 	}
 	for _, m := range Store.Missions {
-		log.Println(m.String())
+		log.Infoln(m.String())
 	}
 }

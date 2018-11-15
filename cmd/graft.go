@@ -21,6 +21,8 @@
 package cmd
 
 import (
+	"path/filepath"
+
 	"github.com/MephistoMMM/grafter/model"
 	"github.com/MephistoMMM/grafter/util"
 	"github.com/spf13/cobra"
@@ -53,7 +55,7 @@ func graftRun(cmd *cobra.Command, args []string) {
 }
 
 func graft(M *model.Mission) {
-	log.Printf("Do Graft For %s", M.Name)
+	log.Infof("Do Graft For %s", M.Name)
 	var checker util.IgnoreSupport
 	ignoreDot, err := util.NewIgnoreDotSupport()
 	if err != nil {
@@ -70,11 +72,15 @@ func graft(M *model.Mission) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Infoln(M.Src)
 
 	ignoreDot.SetNext(ignoreUnregular).SetNext(gitIgnore)
 	checker = ignoreDot
 
-	files, _ := util.Walk(M.Src, checker)
-	log.Println(len(files))
-	log.Println(checker.String())
+	sources, _ := util.Walk(M.Src, checker)
+	for _, source := range sources {
+		dest := filepath.Join(M.Dest, source[len(M.Src):])
+		log.Debug(dest)
+		// util.CopyFile(source, dest)
+	}
 }

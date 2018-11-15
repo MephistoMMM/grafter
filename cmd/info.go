@@ -44,5 +44,5 @@ func infoRun(cmd *cobra.Command, args []string) {
 		log.Fatalf("Mission %s doesn't exist.", name)
 	}
 
-	log.Println(m.String())
+	log.Infoln(m.String())
 }

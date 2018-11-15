@@ -20,66 +20,46 @@
 package util
 
 import (
-	"log"
 	"os"
+
+	log "github.com/sirupsen/logrus"
 )
 
-var Logger MixLogger
-
-type MixLogger struct {
-	out *log.Logger
-	err *log.Logger
-}
+var Logger = log.New()
 
 func init() {
-	Logger.out = log.New(os.Stdout, "", 0)
-	Logger.err = log.New(os.Stderr, "", 0)
+	// Output to stdout instead of the default stderr
+	// Can be any io.Writer, see below for File example
+	Logger.SetOutput(os.Stdout)
+
+	Logger.SetLevel(log.DebugLevel)
+	Logger.SetFormatter(&log.TextFormatter{
+		DisableTimestamp: true,
+	})
 }
 
-func (ml *MixLogger) Print(v ...interface{}) {
-	ml.out.Print(v...)
-}
+var (
+	Debug   = Logger.Debug
+	Debugf  = Logger.Debugf
+	Debugln = Logger.Debugln
 
-func (ml *MixLogger) Println(v ...interface{}) {
-	ml.out.Println(v...)
-}
+	Info   = Logger.Info
+	Infof  = Logger.Infof
+	Infoln = Logger.Infoln
 
-func (ml *MixLogger) Printf(format string, v ...interface{}) {
-	ml.out.Printf(format, v...)
-}
+	Warn   = Logger.Warn
+	Warnf  = Logger.Warnf
+	Warnln = Logger.Warnln
 
-func (ml *MixLogger) Fatal(v ...interface{}) {
-	ml.err.Fatal(v...)
-}
+	Error   = Logger.Error
+	Errorf  = Logger.Errorf
+	Errorln = Logger.Errorln
 
-func (ml *MixLogger) Fatalln(v ...interface{}) {
-	ml.err.Fatalln(v...)
-}
+	Fatal   = Logger.Fatal
+	Fatalf  = Logger.Fatalf
+	Fatalln = Logger.Fatalln
 
-func (ml *MixLogger) Fatalf(format string, v ...interface{}) {
-	ml.err.Fatalf(format, v...)
-}
-
-func Print(v ...interface{}) {
-	Logger.Print(v...)
-}
-
-func Println(v ...interface{}) {
-	Logger.Println(v...)
-}
-
-func Printf(format string, v ...interface{}) {
-	Logger.Printf(format, v...)
-}
-
-func Fatal(v ...interface{}) {
-	Logger.Fatal(v...)
-}
-
-func Fatalln(v ...interface{}) {
-	Logger.Fatalln(v...)
-}
-
-func Fatalf(format string, v ...interface{}) {
-	Logger.Fatalf(format, v...)
-}
+	Panic   = Logger.Panic
+	Panicf  = Logger.Panicf
+	Panicln = Logger.Panicln
+)

@@ -79,7 +79,7 @@ func (bs *BaseSupport) String() string {
 
 // Done does nothing but implement IgnoreSupport interface
 func (bs *BaseSupport) Done(path string, info os.FileInfo) {
-	Logger.Printf("%s ignored by %s\n", path, bs.name)
+	Logger.Debugf("%s ignored by %s\n", path, bs.name)
 }
 
 // Fail does nothing but implement IgnoreSupport interface
