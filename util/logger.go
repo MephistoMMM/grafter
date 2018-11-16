@@ -28,11 +28,20 @@ import (
 var Logger = log.New()
 
 func init() {
+	val, ok := os.LookupEnv("GRAFTER_ENV")
+	if !ok {
+		val = "pro"
+	}
+
+	if val == "pro" {
+		Logger.SetLevel(log.InfoLevel)
+	} else {
+		Logger.SetLevel(log.DebugLevel)
+	}
+
 	// Output to stdout instead of the default stderr
 	// Can be any io.Writer, see below for File example
 	Logger.SetOutput(os.Stdout)
-
-	Logger.SetLevel(log.DebugLevel)
 	Logger.SetFormatter(&log.TextFormatter{
 		DisableTimestamp: true,
 	})
