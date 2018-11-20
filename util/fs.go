@@ -31,6 +31,7 @@ import (
 // CopyFile copies a file from src to dst. If src and dst files exist, and are
 // the same, then return success. Otherise, copy the file contents from src to dst.
 func CopyFile(src, dst string) (err error) {
+	Logger.Debugf("Copy file %s to %s...", src, dst)
 	sfi, err := os.Stat(src)
 	if err != nil {
 		return
@@ -54,6 +55,7 @@ func CopyFile(src, dst string) (err error) {
 		}
 	}
 	err = copyFileContents(src, dst)
+	Logger.Debugf("Finish Copying from %s to %s...", src, dst)
 	return
 }
 

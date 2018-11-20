@@ -80,7 +80,7 @@ func graft(M *model.Mission) {
 	sources, _ := util.Walk(M.Src, checker)
 	for _, source := range sources {
 		dest := filepath.Join(M.Dest, source[len(M.Src):])
-		log.Debug(dest)
-		// util.CopyFile(source, dest)
+		// log.Debug(dest)
+		util.CopyFile(source, dest)
 	}
 }
