@@ -77,10 +77,20 @@ func graft(M *model.Mission) {
 	ignoreDot.SetNext(ignoreUnregular).SetNext(gitIgnore)
 	checker = ignoreDot
 
-	sources, _ := util.Walk(M.Src, checker)
-	for _, source := range sources {
-		dest := filepath.Join(M.Dest, source[len(M.Src):])
-		// log.Debug(dest)
-		util.CopyFile(source, dest)
+	walker := util.NewWalker(M.Src, checker, 10)
+	go func(w *util.Walker) {
+		if err := w.Walk(); err != nil {
+			log.Errorf("Walker[%s] error: %v.", w.Dir(), err)
+		}
+	}(walker)
+
+	for source := range walker.Pipe() {
+		if source.Err != nil {
+			log.Infof("Receive Error From Pipe: %v.", source.Err)
+			continue
+		}
+		dest := filepath.Join(M.Dest, source.Path[len(M.Src):])
+		log.Debugf("Receive Path: %s.", dest)
+		// util.CopyFile(source, dest)
 	}
 }
