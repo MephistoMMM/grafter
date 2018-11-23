@@ -64,12 +64,14 @@ func (w *Walker) Walk() (err error) {
 	err = filepath.Walk(w.dir,
 		func(path string, info os.FileInfo, er error) error {
 			if er != nil {
+				// send error
 				w.pipe <- &Item{
 					Err: er,
 				}
 				return er
 			}
 			if !Check(w.checker, path, info) {
+				// send valid path
 				w.pipe <- &Item{
 					Path: path,
 				}

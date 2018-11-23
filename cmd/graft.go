@@ -22,6 +22,8 @@ package cmd
 
 import (
 	"path/filepath"
+	"runtime"
+	"sync"
 
 	"github.com/MephistoMMM/grafter/model"
 	"github.com/MephistoMMM/grafter/util"
@@ -84,13 +86,26 @@ func graft(M *model.Mission) {
 		}
 	}(walker)
 
-	for source := range walker.Pipe() {
+	var wg sync.WaitGroup
+	pipe := walker.Pipe()
+	for i := 0; i < runtime.NumCPU(); i++ {
+		wg.Add(1)
+		doCopy(&wg, pipe, M)
+	}
+
+	wg.Wait()
+}
+
+func doCopy(wg *sync.WaitGroup, pipe <-chan *util.Item, M *model.Mission) {
+	for source := range pipe {
 		if source.Err != nil {
 			log.Infof("Receive Error From Pipe: %v.", source.Err)
 			continue
 		}
 		dest := filepath.Join(M.Dest, source.Path[len(M.Src):])
-		log.Debugf("Receive Path: %s.", dest)
-		// util.CopyFile(source, dest)
+		// log.Debugf("Receive Path: %s.", dest)
+		util.CopyFile(source.Path, dest)
 	}
+
+	wg.Done()
 }
