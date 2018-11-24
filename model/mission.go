@@ -31,15 +31,16 @@ import (
 
 // Mission represents a mission of grafting.
 type Mission struct {
-	Src  string `yaml:"src"`
-	Dest string `yaml:"dest"`
-	Name string `yaml:"name"`
+	Src    string   `yaml:"src"`
+	Dest   string   `yaml:"dest"`
+	Name   string   `yaml:"name"`
+	Ignore []string `yaml:"ignore"`
 }
 
 // String return string value of Mission data
 func (m *Mission) String() string {
-	return fmt.Sprintf("%s:\n\tsrc: %s\n\tdest: %s\n",
-		m.Name, m.Src, m.Dest)
+	return fmt.Sprintf("%s:\n\tsrc: %s\n\tdest: %s\n\tignore: %s\n",
+		m.Name, m.Src, m.Dest, m.Ignore)
 }
 
 // MissionStore store all registered Missions

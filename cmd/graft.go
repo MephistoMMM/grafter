@@ -74,7 +74,6 @@ func graft(M *model.Mission) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Infoln(M.Src)
 
 	ignoreDot.SetNext(ignoreUnregular).SetNext(gitIgnore)
 	checker = ignoreDot
