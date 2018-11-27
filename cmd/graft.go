@@ -58,25 +58,32 @@ func graftRun(cmd *cobra.Command, args []string) {
 
 func graft(M *model.Mission) {
 	log.Infof("Do Graft For %s", M.Name)
-	var checker util.IgnoreSupport
-	ignoreDot, err := util.NewIgnoreDotSupport()
+	var checker, tail util.IgnoreSupport
+	tail, err := util.NewIgnoreDotSupport()
 	if err != nil {
 		log.Fatal(err)
 	}
+	checker = tail
 
 	ignoreUnregular, err := util.NewIgnoreUnregularSupport()
 	if err != nil {
 		log.Fatal(err)
 	}
+	tail = tail.SetNext(ignoreUnregular)
 
 	// gitignore support ignores filepath matched patterns in .gitignore
 	gitIgnore, err := util.NewGitIgnoreSupport(M.Src)
 	if err != nil {
 		log.Fatal(err)
 	}
+	tail = tail.SetNext(gitIgnore)
 
-	ignoreDot.SetNext(ignoreUnregular).SetNext(gitIgnore)
-	checker = ignoreDot
+	// create regexp match supports from ignore field
+	regexpMatches, err := util.NewMultiIgnoreRegexpMatchSupports(M.Ignore)
+	if err != nil {
+		log.Fatal(err)
+	}
+	tail = tail.SetNexts(regexpMatches)
 
 	walker := util.NewWalker(M.Src, checker, 10)
 	go func(w *util.Walker) {
@@ -102,8 +109,8 @@ func doCopy(wg *sync.WaitGroup, pipe <-chan *util.Item, M *model.Mission) {
 			continue
 		}
 		dest := filepath.Join(M.Dest, source.Path[len(M.Src):])
-		// log.Debugf("Receive Path: %s.", dest)
-		util.CopyFile(source.Path, dest)
+		log.Debugf("Receive Path: %s.", dest)
+		// util.CopyFile(source.Path, dest)
 	}
 
 	wg.Done()

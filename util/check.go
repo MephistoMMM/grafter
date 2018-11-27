@@ -35,6 +35,7 @@ import (
 // IgnoreSupport is a part of abstract Support.
 type IgnoreSupport interface {
 	SetNext(IgnoreSupport) IgnoreSupport
+	SetNexts([]IgnoreSupport) IgnoreSupport
 	Next() IgnoreSupport
 	String() string
 
@@ -62,6 +63,19 @@ func (bs *BaseSupport) SetName(n string) {
 func (bs *BaseSupport) SetNext(n IgnoreSupport) IgnoreSupport {
 	bs.next = n
 	return n
+}
+
+// SetNexts assign a IgnoreSupport link list to inner next field.
+func (bs *BaseSupport) SetNexts(ns []IgnoreSupport) IgnoreSupport {
+	if len(ns) < 1 {
+		return nil
+	}
+	innerBs := bs.SetNext(ns[0])
+	ns = ns[1:]
+	for _, n := range ns {
+		innerBs = innerBs.SetNext(n)
+	}
+	return innerBs
 }
 
 // Next return next.
@@ -115,6 +129,19 @@ type IgnoreRegexpMatchSupport struct {
 	pattern *regexp.Regexp
 }
 
+func NewMultiIgnoreRegexpMatchSupports(exprs []string) ([]IgnoreSupport, error) {
+	iss := make([]IgnoreSupport, 0, len(exprs))
+	for _, exprs := range exprs {
+		is, err := NewIgnoreRegexpMatchSupport(exprs)
+		if err != nil {
+			return nil, err
+		}
+
+		iss = append(iss, is)
+	}
+	return iss, nil
+}
+
 func NewIgnoreRegexpMatchSupport(expr string) (IgnoreSupport, error) {
 	pattern, err := regexp.Compile(expr)
 	if err != nil {
@@ -126,7 +153,6 @@ func NewIgnoreRegexpMatchSupport(expr string) (IgnoreSupport, error) {
 	}
 	is.SetName("IgnoreRegexpMatchSupport")
 	return is, nil
-
 }
 
 // IsIgnore ...
