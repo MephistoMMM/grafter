@@ -109,8 +109,8 @@ func doCopy(wg *sync.WaitGroup, pipe <-chan *util.Item, M *model.Mission) {
 			continue
 		}
 		dest := filepath.Join(M.Dest, source.Path[len(M.Src):])
-		log.Debugf("Receive Path: %s.", dest)
-		// util.CopyFile(source.Path, dest)
+		// log.Debugf("Receive Path: %s.", dest)
+		util.CopyFile(source.Path, dest)
 	}
 
 	wg.Done()
