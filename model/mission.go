@@ -43,6 +43,18 @@ func (m *Mission) String() string {
 		m.Name, m.Src, m.Dest, m.Ignore)
 }
 
+// AddIgnore append a new regex string to Ignore field, if it
+// has not been existed.
+func (m *Mission) AddIgnore(reStr string) {
+	for _, i := range m.Ignore {
+		if i == reStr {
+			return
+		}
+	}
+
+	m.Ignore = append(m.Ignore, reStr)
+}
+
 // MissionStore store all registered Missions
 type MissionStore struct {
 	path     string
@@ -56,6 +68,11 @@ func NewMissionStore(storePath string) (*MissionStore, error) {
 	ms := &MissionStore{}
 	err := ms.Init(storePath)
 	return ms, err
+}
+
+// Modified set the value of modified field
+func (ms *MissionStore) Modified(t bool) {
+	ms.modified = t
 }
 
 // Init load mission store from yaml file
@@ -84,9 +101,9 @@ func (ms *MissionStore) Add(mission Mission) bool {
 // Get mission by mission name
 func (ms *MissionStore) Get(mission string) *Mission {
 	// return false while mission already exists
-	for _, m := range ms.Missions {
+	for i, m := range ms.Missions {
 		if m.Name == mission {
-			return &m
+			return &ms.Missions[i]
 		}
 	}
 
