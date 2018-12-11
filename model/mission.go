@@ -55,6 +55,18 @@ func (m *Mission) AddIgnore(reStr string) {
 	m.Ignore = append(m.Ignore, reStr)
 }
 
+// RemoveIgnore delete a regex string from Ignore field. if it
+// has not been existed, do nothing.
+func (m *Mission) RemoveIgnore(index int64) {
+	if index == 0 {
+		m.Ignore = m.Ignore[1:]
+	} else if index > 0 && index < int64(len(m.Ignore)-1) {
+		m.Ignore = append(m.Ignore[0:index], m.Ignore[index+1:]...)
+	} else if index == int64(len(m.Ignore)-1) {
+		m.Ignore = m.Ignore[0 : len(m.Ignore)-1]
+	}
+}
+
 // MissionStore store all registered Missions
 type MissionStore struct {
 	path     string

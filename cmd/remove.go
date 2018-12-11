@@ -22,35 +22,37 @@ package cmd
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/spf13/cobra"
 )
 
 // removeCmd represents the remove command
 var removeCmd = &cobra.Command{
-	Use:   "remove",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("remove called")
+	Use:   "remove <mission_name> <regexp>",
+	Short: "Remove a regexp according to index",
+	Long:  `Remove command removes a regexp from ignore field of mission. It is according to index of the regexp. If index is out of ranger, it do nothing.`,
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) != 2 {
+			return fmt.Errorf("accepts %d arg(s), received %d", 1, len(args))
+		}
+		// TODO validate the type of arguement is int
+		return nil
 	},
+	Run: removeRun,
 }
 
 func init() {
 	ignoreCmd.AddCommand(removeCmd)
+}
 
-	// Here you will define your flags and configuration settings.
+func removeRun(cmd *cobra.Command, args []string) {
+	index, err := strconv.ParseInt(args[1], 10, 64)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// removeCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// removeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	mission := Store.Get(args[0])
+	mission.RemoveIgnore(index)
+	Store.Modified(true)
 }
