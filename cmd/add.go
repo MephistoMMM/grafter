@@ -39,6 +39,10 @@ func init() {
 
 func addRun(cmd *cobra.Command, args []string) {
 	mission := Store.Get(args[0])
+	if mission == nil {
+		log.Fatalf("Invalid mission name: %s ", args[0])
+	}
+
 	regexp := args[1]
 	mission.AddIgnore(regexp)
 	Store.Modified(true)

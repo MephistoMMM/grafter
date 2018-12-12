@@ -53,6 +53,10 @@ func removeRun(cmd *cobra.Command, args []string) {
 	}
 
 	mission := Store.Get(args[0])
+	if mission == nil {
+		log.Fatalf("Invalid mission name: %s ", args[0])
+	}
+
 	mission.RemoveIgnore(index)
 	Store.Modified(true)
 }
