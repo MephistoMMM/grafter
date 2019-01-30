@@ -28,6 +28,10 @@ import (
 	"path/filepath"
 )
 
+const (
+	PERM_OF_AUTO_CREATE_DIR os.FileMode = 0755
+)
+
 // CopyFile copies a file from src to dst. If src and dst files exist, and are
 // the same, then return success. Otherise, copy the file contents from src to dst.
 func CopyFile(src, dst string) (err error) {
@@ -54,9 +58,17 @@ func CopyFile(src, dst string) (err error) {
 			return
 		}
 	}
+	err = mkdirParentDirs(dst)
+	if err != nil {
+		return
+	}
 	err = copyFileContents(src, dst)
 	Logger.Debugf("Finish Copying from %s to %s...", src, dst)
 	return
+}
+
+func mkdirParentDirs(dst string) error {
+	return os.MkdirAll(filepath.Dir(dst), PERM_OF_AUTO_CREATE_DIR)
 }
 
 // copyFileContents copies the contents of the file named src to the file named
