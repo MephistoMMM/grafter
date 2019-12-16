@@ -21,6 +21,8 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
 	"path/filepath"
 	"runtime"
 	"sync"
@@ -56,8 +58,7 @@ func graftRun(cmd *cobra.Command, args []string) {
 	graft(M)
 }
 
-func graft(M *model.Mission) {
-	log.Infof("Do Graft For %s", M.Name)
+func combineIgnoreChain(M *model.Mission) util.IgnoreSupport {
 	var checker, tail util.IgnoreSupport
 	tail, err := util.NewIgnoreDotSupport()
 	if err != nil {
@@ -85,6 +86,36 @@ func graft(M *model.Mission) {
 	}
 	tail = tail.SetNexts(regexpMatches)
 
+	return checker
+}
+
+func graft(M *model.Mission) {
+	log.Infof("Do Graft For %s", M.Name)
+
+	checker := combineIgnoreChain(M)
+	copyDifferent(M, checker)
+	removeNotExist(M, checker)
+}
+
+func removeNotExist(M *model.Mission, checker util.IgnoreSupport) {
+	walker := util.NewWalker(M.Dest, checker, 10)
+	go func(w *util.Walker) {
+		if err := w.Walk(); err != nil {
+			log.Errorf("Walker[%s] error: %v.", w.Dir(), err)
+		}
+	}(walker)
+
+	var wg sync.WaitGroup
+	pipe := walker.Pipe()
+	for i := 0; i < runtime.NumCPU(); i++ {
+		wg.Add(1)
+		go doRemove(&wg, pipe, M)
+	}
+
+	wg.Wait()
+}
+
+func copyDifferent(M *model.Mission, checker util.IgnoreSupport) {
 	walker := util.NewWalker(M.Src, checker, 10)
 	go func(w *util.Walker) {
 		if err := w.Walk(); err != nil {
@@ -96,10 +127,31 @@ func graft(M *model.Mission) {
 	pipe := walker.Pipe()
 	for i := 0; i < runtime.NumCPU(); i++ {
 		wg.Add(1)
-		doCopy(&wg, pipe, M)
+		go doCopy(&wg, pipe, M)
 	}
 
 	wg.Wait()
+}
+
+func doRemove(wg *sync.WaitGroup, pipe <-chan *util.Item, M *model.Mission) {
+	for dest := range pipe {
+		if dest.Err != nil {
+			log.Infof("Receive Error From Pipe: %v.", dest.Err)
+			continue
+		}
+
+		src := filepath.Join(M.Src, dest.Path[len(M.Dest):])
+		if _, err := os.Stat(src); !os.IsNotExist(err) {
+			continue
+		}
+
+		if err := os.Remove(dest.Path); err != nil {
+			log.Errorf("Failed to remove %s: %s", dest.Path, err.Error())
+		}
+
+	}
+
+	wg.Done()
 }
 
 func doCopy(wg *sync.WaitGroup, pipe <-chan *util.Item, M *model.Mission) {
@@ -108,10 +160,36 @@ func doCopy(wg *sync.WaitGroup, pipe <-chan *util.Item, M *model.Mission) {
 			log.Infof("Receive Error From Pipe: %v.", source.Err)
 			continue
 		}
+
 		dest := filepath.Join(M.Dest, source.Path[len(M.Src):])
-		// log.Debugf("Receive Path: %s.", dest)
-		util.CopyFile(source.Path, dest)
+		isSame, err := compareFile(source.Path, dest)
+		if err != nil {
+			log.Error(err.Error())
+		}
+
+		if !isSame {
+			util.CopyFile(source.Path, dest)
+		}
 	}
 
 	wg.Done()
+}
+
+func compareFile(src, dest string) (bool, error) {
+	srcFi, err := os.Lstat(src)
+	if os.IsNotExist(err) {
+		return false, fmt.Errorf("Source file %s doesn't exist!", src)
+	}
+
+	destFi, err := os.Lstat(dest)
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+
+	if srcFi.Size() != destFi.Size() {
+		return false, nil
+	}
+
+	// TODO : compare the content of two file
+	return false, nil
 }
